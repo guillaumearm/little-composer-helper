@@ -1,0 +1,21 @@
+{
+  "name": "compositor",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "clean": "rimraf dist"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "vite": "^2.4.2",
+    "vite-plugin-solid": "^2.0.0"
+  },
+  "dependencies": {
+    "solid-js": "^1.0.2"
+  }
+}
