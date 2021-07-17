@@ -1,16 +1,25 @@
-import type { Component, JSX } from 'solid-js';
+import type { Component } from 'solid-js';
+import { ChromaticCounter } from './containers/ChromaticCounter';
 
-type MandatoryChildrenProps = { children: JSX.Element };
+type MandatoryChildrenProps = { children: string };
 
 const AppTitle: Component<MandatoryChildrenProps> = (props) => {
-  return <h1>{props.children}</h1>;
+  return (
+    <h1
+      style={{
+        'text-align': 'center',
+      }}
+    >
+      {props.children.toUpperCase()}
+    </h1>
+  );
 };
 
 const App: Component = () => {
   return (
     <>
       <AppTitle>Compositor</AppTitle>
-      <p>Hello World</p>
+      <ChromaticCounter />
     </>
   );
 };
