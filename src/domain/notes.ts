@@ -22,7 +22,7 @@ export const CHROMATIC_SCALE: Note[] = [
   'G#',
 ];
 
-export const INDEXED_CHROMATIC_SCALE = indexBy((x) => x, CHROMATIC_SCALE);
+export const INDEXED_CHROMATIC_SCALE = indexBy(x => x, CHROMATIC_SCALE);
 
 const compareNotes = (noteA: Note, noteB: Note): number => {
   if (noteA === noteB) return 0;
@@ -62,7 +62,7 @@ export const transposeNote = (note: Note, interval: number): Note => {
  * @example transposeNotes(['C', 'E', 'G'], 2); // => ['D', 'F#', 'A']
  */
 export const transposeNotes = (notes: Note[], interval: number): Note[] =>
-  notes.map((note) => transposeNote(note, interval));
+  notes.map(note => transposeNote(note, interval));
 
 /**
  * Take a set of notes (usually a musical scale) and change the base of the scale

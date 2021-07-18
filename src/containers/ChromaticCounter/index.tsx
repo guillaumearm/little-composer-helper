@@ -16,9 +16,9 @@ export const createNoteCounter = (note: Note): NoteCounterProps => {
   const [getCount, setCount] = createSignal(0);
 
   const plus = () => {
-    setCount((x) => x + 1);
+    setCount(x => x + 1);
   };
-  const minus = () => setCount((x) => Math.max(0, x - 1));
+  const minus = () => setCount(x => Math.max(0, x - 1));
   const reset = () => setCount(0);
 
   return {
@@ -31,7 +31,7 @@ export const createNoteCounter = (note: Note): NoteCounterProps => {
   };
 };
 
-const NoteCounter: Component<NoteCounterProps> = (props) => {
+const NoteCounter: Component<NoteCounterProps> = props => {
   const buttonStyle = {
     padding: '2px',
     margin: '2px',
@@ -90,7 +90,7 @@ type CromaticCounterProps = {
   noteCounters: NoteCounterProps[];
 };
 
-const ChromaticLayout: Component<CromaticCounterProps> = (props) => {
+const ChromaticLayout: Component<CromaticCounterProps> = props => {
   return (
     <div
       style={{
@@ -99,7 +99,7 @@ const ChromaticLayout: Component<CromaticCounterProps> = (props) => {
       }}
     >
       <For each={props.noteCounters}>
-        {(noteCounterProps) => {
+        {noteCounterProps => {
           return <NoteCounter {...noteCounterProps} />;
         }}
       </For>
@@ -107,10 +107,10 @@ const ChromaticLayout: Component<CromaticCounterProps> = (props) => {
   );
 };
 
-export const ChromaticCounter: Component<CromaticCounterProps> = (props) => {
+export const ChromaticCounter: Component<CromaticCounterProps> = props => {
   const onResetAll = () => {
     batch(() => {
-      props.noteCounters.forEach((noteCounter) => {
+      props.noteCounters.forEach(noteCounter => {
         noteCounter.reset();
       });
     });

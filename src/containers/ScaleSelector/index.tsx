@@ -14,7 +14,7 @@ function call<T>(fn: () => T) {
   return fn();
 }
 
-const ScaleLine: Component<ScaleLineProps> = (props) => {
+const ScaleLine: Component<ScaleLineProps> = props => {
   const lineStyle: Accessor<JSX.CSSProperties> = createMemo(() => ({
     display: 'inline-block',
     'font-weight': props.selected() ? 'bold' : 'normal',
@@ -74,7 +74,7 @@ export const ScaleSelector: Component = () => {
       }}
     >
       <For each={ALL_AVAILABLE_SCALES}>
-        {(scale) => {
+        {scale => {
           const selected = () => selectedScale()?.name === scale.name;
 
           return (

@@ -41,7 +41,7 @@ const getScale = (baseNote: Note, definition: ScaleDefinition): Scale => {
 };
 
 const getAllScales = (definition: ScaleDefinition): Record<Note, Scale> => {
-  return mapObjIndexed((note) => getScale(note, definition), INDEXED_CHROMATIC_SCALE);
+  return mapObjIndexed(note => getScale(note, definition), INDEXED_CHROMATIC_SCALE);
 };
 
 /**

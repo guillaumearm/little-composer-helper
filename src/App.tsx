@@ -8,7 +8,7 @@ import { MAJOR_SCALES, Scale } from './domain/scales';
 
 type AppTitleProps = { children: string };
 
-const AppTitle: Component<AppTitleProps> = (props) => {
+const AppTitle: Component<AppTitleProps> = props => {
   return (
     <h2
       style={{
@@ -50,7 +50,7 @@ const ScaleDisplay: Component<{ scale: Scale }> = ({ scale }) => {
         }}
       >
         <For each={scale.notes}>
-          {(note) => {
+          {note => {
             return <ScaleDisplayNote note={note} />;
           }}
         </For>
@@ -60,11 +60,11 @@ const ScaleDisplay: Component<{ scale: Scale }> = ({ scale }) => {
 };
 
 const App: Component = () => {
-  const noteCounters = CHROMATIC_SCALE_BASE_C.map((note) => createNoteCounter(note));
+  const noteCounters = CHROMATIC_SCALE_BASE_C.map(note => createNoteCounter(note));
 
   const noteCountersMap = createMemo((): NoteCountersMap => {
-    const indexedNoteCounters = indexBy((v) => v.note, noteCounters);
-    return mapObjIndexed((v) => v.count(), indexedNoteCounters);
+    const indexedNoteCounters = indexBy(v => v.note, noteCounters);
+    return mapObjIndexed(v => v.count(), indexedNoteCounters);
   });
 
   // TODO: pass to ScaleSelector
