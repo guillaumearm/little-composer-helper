@@ -72,7 +72,7 @@ const App: Component = () => {
 
   return (
     <>
-      <AppTitle>Compositor</AppTitle>
+      <AppTitle>Little Composer Helper</AppTitle>
       <ChromaticCounter noteCounters={noteCounters} />
       <ScaleSelector />
       <ScaleDisplay scale={MAJOR_SCALES.A} />
