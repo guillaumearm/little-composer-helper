@@ -1,9 +1,16 @@
-import type { Component } from 'solid-js';
-import { ChromaticCounter } from './containers/ChromaticCounter';
+import { indexBy, mapObjIndexed } from 'ramda';
+import { Component, createMemo } from 'solid-js';
 
-type MandatoryChildrenProps = { children: string };
+import {
+  ChromaticCounter,
+  createNoteCounter,
+} from './containers/ChromaticCounter';
+import { ScaleSelector } from './containers/ScaleSelector';
+import { CHROMATIC_SCALE_BASE_C, Note } from './domain/notes';
 
-const AppTitle: Component<MandatoryChildrenProps> = (props) => {
+type AppTitleProps = { children: string };
+
+const AppTitle: Component<AppTitleProps> = (props) => {
   return (
     <h1
       style={{
@@ -15,11 +22,26 @@ const AppTitle: Component<MandatoryChildrenProps> = (props) => {
   );
 };
 
+type NoteCountersMap = Record<Note, number>;
+
 const App: Component = () => {
+  const noteCounters = CHROMATIC_SCALE_BASE_C.map((note) =>
+    createNoteCounter(note),
+  );
+
+  const noteCountersMap = createMemo((): NoteCountersMap => {
+    const indexedNoteCounters = indexBy((v) => v.note, noteCounters);
+    return mapObjIndexed((v) => v.count(), indexedNoteCounters);
+  });
+
+  // TODO: pass to ScaleSelector
+  void noteCountersMap;
+
   return (
     <>
       <AppTitle>Compositor</AppTitle>
-      <ChromaticCounter />
+      <ChromaticCounter noteCounters={noteCounters} />
+      <ScaleSelector />
     </>
   );
 };

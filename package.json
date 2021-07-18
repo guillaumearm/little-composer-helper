@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "lint": "eslint . --ext .ts,.tsx,.js",
+    "lint": "eslint .  --max-warnings 0 --ext .ts,.tsx,.js",
     "lint:all": "npm run lint && npm run prettier:check",
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",

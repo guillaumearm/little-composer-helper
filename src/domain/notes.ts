@@ -94,3 +94,10 @@ export const changeBase = (givenNotes: Note[], newBase: Note): Note[] => {
 
   return [...notes.slice(indexFound), ...notes.slice(0, indexFound)];
 };
+
+/**
+ * chromatic scale starting to C note
+ *
+ * C - C# - D - D# - E - F - F# - G - G# - A - A# - B
+ */
+export const CHROMATIC_SCALE_BASE_C = changeBase(CHROMATIC_SCALE, 'C');

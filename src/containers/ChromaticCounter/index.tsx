@@ -1,7 +1,5 @@
-import { Accessor, Component, createSignal, For } from 'solid-js';
-import { changeBase, CHROMATIC_SCALE, Note } from '../../domain/notes';
-
-const CHROMATIC_SCALE_BASE_C = changeBase(CHROMATIC_SCALE, 'C');
+import { Accessor, batch, Component, createSignal, For } from 'solid-js';
+import { Note } from '../../domain/notes';
 
 type Callback = () => void;
 
@@ -14,7 +12,7 @@ type NoteCounterProps = {
   reset: Callback;
 };
 
-const createNoteCounter = (note: Note): NoteCounterProps => {
+export const createNoteCounter = (note: Note): NoteCounterProps => {
   const [getCount, setCount] = createSignal(0);
 
   const plus = () => {
@@ -88,9 +86,11 @@ const NoteCounter: Component<NoteCounterProps> = (props) => {
   );
 };
 
-const ChromaticLayout: Component<{ noteCounters: NoteCounterProps[] }> = (
-  props,
-) => {
+type CromaticCounterProps = {
+  noteCounters: NoteCounterProps[];
+};
+
+const ChromaticLayout: Component<CromaticCounterProps> = (props) => {
   return (
     <div
       style={{
@@ -107,29 +107,28 @@ const ChromaticLayout: Component<{ noteCounters: NoteCounterProps[] }> = (
   );
 };
 
-export const ChromaticCounter: Component = () => {
-  const noteCounters = CHROMATIC_SCALE_BASE_C.map((note) =>
-    createNoteCounter(note),
-  );
-
+export const ChromaticCounter: Component<CromaticCounterProps> = (props) => {
   const onResetAll = () => {
-    noteCounters.forEach((noteCounter) => {
-      noteCounter.reset();
+    batch(() => {
+      props.noteCounters.forEach((noteCounter) => {
+        noteCounter.reset();
+      });
     });
   };
 
   return (
     <div
       style={{
-        // margin: 'auto',
+        display: 'inline-block',
         'margin-left': '42px',
         'background-color': 'gray',
-        width: '300px',
+        width: '220px',
         padding: '2px',
+        height: '425px',
       }}
     >
       <button onClick={onResetAll}>RESET ALL</button>
-      <ChromaticLayout noteCounters={noteCounters} />
+      <ChromaticLayout noteCounters={props.noteCounters} />
     </div>
   );
 };
