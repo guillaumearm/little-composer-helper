@@ -1,9 +1,13 @@
-import type { Component, JSX } from 'solid-js';
+import { always } from 'ramda';
+import { For, Accessor, Component, createMemo, createSignal, JSX } from 'solid-js';
+
+import { ALL_AVAILABLE_SCALES, Scale } from '../../domain/scales';
 
 type ScaleLineProps = {
   children: string;
-  disabled?: boolean;
-  selected?: boolean;
+  onClick: () => void;
+  disabled: Accessor<boolean>;
+  selected: Accessor<boolean>;
 };
 
 function call<T>(fn: () => T) {
@@ -11,30 +15,33 @@ function call<T>(fn: () => T) {
 }
 
 const ScaleLine: Component<ScaleLineProps> = (props) => {
-  const lineStyle: JSX.CSSProperties = {
+  const lineStyle: Accessor<JSX.CSSProperties> = createMemo(() => ({
     display: 'inline-block',
-    'font-weight': props.selected ? 'bold' : 'normal',
+    'font-weight': props.selected() ? 'bold' : 'normal',
     margin: '3px',
     padding: '3px',
     border: '1px solid black',
     color: call(() => {
-      if (!props.disabled && props.selected) {
+      if (!props.disabled() && props.selected()) {
         return 'black';
       }
-      return props.disabled ? 'lightgray' : 'inherit';
+      return props.disabled() ? 'lightgray' : 'inherit';
     }),
     'background-color': call(() => {
-      if (!props.disabled && props.selected) {
+      if (!props.disabled() && props.selected()) {
         return 'white';
       }
-      return props.disabled ? 'inherit' : 'lightgray';
+      return props.disabled() ? 'inherit' : 'lightgray';
     }),
-  };
+    cursor: 'pointer',
+  }));
 
   return (
     <div>
-      <div style={lineStyle}>{props.children}</div>
-      {props.selected && (
+      <div onClick={props.onClick} style={lineStyle()}>
+        {props.children}
+      </div>
+      {props.selected() && (
         <div
           style={{
             display: 'inline',
@@ -51,6 +58,8 @@ const ScaleLine: Component<ScaleLineProps> = (props) => {
 };
 
 export const ScaleSelector: Component = () => {
+  const [selectedScale, setSelectedScale] = createSignal<Scale>();
+
   return (
     <div
       style={{
@@ -64,10 +73,21 @@ export const ScaleSelector: Component = () => {
         'overflow-y': 'scroll',
       }}
     >
-      <ScaleLine selected>Line 1</ScaleLine>
-      <ScaleLine disabled>Line 2</ScaleLine>
-      <ScaleLine>Line 3</ScaleLine>
-      <ScaleLine disabled>Line 4</ScaleLine>
+      <For each={ALL_AVAILABLE_SCALES}>
+        {(scale) => {
+          const selected = () => selectedScale()?.name === scale.name;
+
+          return (
+            <ScaleLine
+              onClick={() => setSelectedScale(scale)}
+              disabled={always(false)}
+              selected={selected}
+            >
+              {scale.name}
+            </ScaleLine>
+          );
+        }}
+      </For>
     </div>
   );
 };
