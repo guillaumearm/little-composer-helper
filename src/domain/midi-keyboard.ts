@@ -106,7 +106,7 @@ const observeMidiNotesOn = (input: Input) =>
 
     return () => {
       input.removeListener('noteon', 'all', listener);
-      obs.complete();
+      obs.complete(); // TODO: check if useful
     };
   });
 
