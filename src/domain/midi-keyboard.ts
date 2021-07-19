@@ -1,5 +1,6 @@
 import WebMidi, {
   Input,
+  InputEventNoteoff,
   InputEventNoteon,
   WebMidiEventConnected,
   WebMidiEventDisconnected,
@@ -18,9 +19,12 @@ import {
   distinctUntilChanged,
   startWith,
   pairwise,
+  scan,
+  debounceTime,
 } from 'rxjs';
 
-import { isValidNote, Note } from './notes';
+import { INDEXED_CHROMATIC_SCALE, isValidNote, Note } from './notes';
+import { mapObjIndexed } from 'ramda';
 
 const enableWebMidi = (): Promise<true> =>
   new Promise((res, rej) => {
@@ -106,6 +110,25 @@ const observeMidiNotesOn = (input: Input) =>
     };
   });
 
+const observeMidiNotesOff = (input: Input) =>
+  new Observable<Note>(obs => {
+    function listener(noteEvent: InputEventNoteoff) {
+      const note = noteEvent.note.name;
+      if (isValidNote(note)) {
+        obs.next(note);
+      } else {
+        obs.error(new Error('observeMidiNotesOn: Invalid not provided!'));
+      }
+    }
+
+    input.addListener('noteoff', 'all', listener);
+
+    return () => {
+      input.removeListener('noteoff', 'all', listener);
+      obs.complete();
+    };
+  });
+
 export type KeyboardConnectionEvent = {
   type: 'connected' | 'disconnected';
   payload: string; // name of the device
@@ -116,10 +139,20 @@ export type KeyboardNoteEvent = {
   payload: Note;
 };
 
-export type KeyboardEvent = KeyboardConnectionEvent | KeyboardNoteEvent;
+// TODO: implement full octave range to know what notes is pressed/released
+export type KeyboardNoteReleaseEvent = {
+  type: 'note_release';
+  payload: Note;
+};
+
+export type KeyboardEvent = KeyboardConnectionEvent | KeyboardNoteEvent | KeyboardNoteReleaseEvent;
 
 export const isNoteEvent = (event: KeyboardEvent): event is KeyboardNoteEvent => {
   return event.type === 'note';
+};
+
+export const isNoteReleaseEvent = (event: KeyboardEvent): event is KeyboardNoteReleaseEvent => {
+  return event.type === 'note_release';
 };
 
 export const isKeyboardConnectionEvent = (
@@ -144,8 +177,38 @@ export const observeMidiKeyboardEvent = (): Observable<KeyboardEvent> => {
         map((payload): KeyboardNoteEvent => ({ type: 'note', payload })),
       );
 
-      return notes$.pipe(startWith({ type: 'connected' as const, payload: input.name }));
+      const notesRelease$ = observeMidiNotesOff(input).pipe(
+        map((payload): KeyboardNoteReleaseEvent => ({ type: 'note_release', payload })),
+      );
+
+      return merge(notes$, notesRelease$).pipe(
+        startWith({ type: 'connected' as const, payload: input.name }),
+      );
     }),
   );
   return midiNotes$;
+};
+
+export type PressedNotesMap = Record<Note, boolean>;
+
+export const DEFAULT_PRESSED_NOTES_MAP: PressedNotesMap = mapObjIndexed(
+  () => false,
+  INDEXED_CHROMATIC_SCALE,
+);
+
+export const observePressedNotes = (
+  noteOn$: Observable<KeyboardNoteEvent>,
+  noteRelease$: Observable<KeyboardNoteReleaseEvent>,
+): Observable<PressedNotesMap> => {
+  return merge(noteOn$, noteRelease$).pipe(
+    scan((pressedNotes, event) => {
+      if (event.type === 'note') {
+        return { ...pressedNotes, [event.payload]: true };
+      } else if (event.type === 'note_release') {
+        return { ...pressedNotes, [event.payload]: false };
+      }
+      return pressedNotes;
+    }, DEFAULT_PRESSED_NOTES_MAP),
+    debounceTime(3),
+  );
 };

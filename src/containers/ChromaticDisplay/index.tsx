@@ -1,4 +1,5 @@
 import { Accessor, Component, createMemo, For } from 'solid-js';
+import { PressedNotesMap } from '../../domain/midi-keyboard';
 import { Note } from '../../domain/notes';
 import { Scale } from '../../domain/scales';
 
@@ -7,12 +8,18 @@ type NoteDisplayProps = {
   sharp: boolean;
   active: Accessor<boolean>;
   selected: Accessor<boolean>;
+  pressed: Accessor<boolean>;
 };
+
+function call<T>(fn: () => T) {
+  return fn();
+}
 
 export const createNoteDisplay = (
   note: Note,
   scannedNotes: Accessor<Note[]>,
   selectedScale: Accessor<Scale | undefined>,
+  pressedNotes: Accessor<PressedNotesMap>,
 ): NoteDisplayProps => {
   const active = createMemo(() => {
     return Boolean(scannedNotes().find(scanned => scanned === note));
@@ -23,11 +30,16 @@ export const createNoteDisplay = (
     return Boolean(selectedNotes.find(selected => selected === note));
   });
 
+  const pressed = createMemo(() => {
+    return Boolean(pressedNotes()[note]);
+  });
+
   return {
     note,
     sharp: note.length > 1,
     active,
     selected,
+    pressed,
   };
 };
 
@@ -38,7 +50,15 @@ const NoteDisplay: Component<NoteDisplayProps> = props => {
         style={{
           display: 'inline-block',
           'padding-top': '8px',
-          'background-color': props.sharp ? 'black' : 'white',
+          'background-color': call(() => {
+            const pressed = props.pressed();
+            if (pressed && props.sharp) {
+              return 'darkgreen';
+            } else if (pressed && !props.sharp) {
+              return 'green';
+            }
+            return props.sharp ? 'black' : 'white';
+          }),
           color: props.sharp ? 'white' : 'black',
           width: props.sharp ? '35px' : '60px',
           'text-align': props.sharp ? 'inherit' : 'center',
