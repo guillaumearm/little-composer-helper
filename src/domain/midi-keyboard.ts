@@ -106,23 +106,29 @@ const observeMidiNotesOn = (input: Input) =>
     };
   });
 
-type KeyboardConnectionEvent = {
+export type KeyboardConnectionEvent = {
   type: 'connected' | 'disconnected';
   payload: string; // name of the device
 };
 
-type KeyboardNoteEvent = {
+export type KeyboardNoteEvent = {
   type: 'note';
   payload: Note;
 };
 
-type KeyboardEvent = KeyboardConnectionEvent | KeyboardNoteEvent;
+export type KeyboardEvent = KeyboardConnectionEvent | KeyboardNoteEvent;
 
 export const isNoteEvent = (event: KeyboardEvent): event is KeyboardNoteEvent => {
   return event.type === 'note';
 };
 
-export const observePlayedNotes = (): Observable<KeyboardEvent> => {
+export const isKeyboardConnectionEvent = (
+  event: KeyboardEvent,
+): event is KeyboardConnectionEvent => {
+  return event.type === 'connected' || event.type === 'disconnected';
+};
+
+export const observeMidiKeyboardEvent = (): Observable<KeyboardEvent> => {
   const midiNotes$ = observeMidiKeyboardInput().pipe(
     startWith(undefined),
     pairwise(),

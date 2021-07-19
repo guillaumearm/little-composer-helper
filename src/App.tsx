@@ -1,4 +1,4 @@
-import { For, JSX, Component, createSignal } from 'solid-js';
+import { For, JSX, Component, createSignal, Accessor, createMemo, createEffect } from 'solid-js';
 
 import { ScaleSelector } from './containers/ScaleSelector';
 import { CHROMATIC_SCALE_BASE_C, Note } from './domain/notes';
@@ -7,9 +7,14 @@ import { Scale } from './domain/scales';
 import './domain/midi-keyboard';
 import './domain/note-scanner';
 import { ChromaticDisplay, createNoteDisplay } from './containers/ChromaticDisplay';
-import { isNoteEvent, observePlayedNotes } from './domain/midi-keyboard';
+import {
+  isKeyboardConnectionEvent,
+  isNoteEvent,
+  KeyboardConnectionEvent,
+  observeMidiKeyboardEvent,
+} from './domain/midi-keyboard';
 import { observeScannedNotes } from './domain/note-scanner';
-import { filter, map, of } from 'rxjs';
+import { filter, map, of, share } from 'rxjs';
 import { observableToAccessor } from './utils/solid-rxjs-tools';
 
 type AppTitleProps = { children: string };
@@ -65,12 +70,43 @@ const ScaleDisplay: Component<{ scale?: Scale }> = props => {
   );
 };
 
+type MidiKeyboardStatusProp = {
+  deviceStatus: Accessor<KeyboardConnectionEvent>;
+};
+
+const MidiKeyboardStatus: Component<MidiKeyboardStatusProp> = props => {
+  const status = createMemo(() => props.deviceStatus());
+
+  return (
+    <div
+      style={{
+        'background-color': status().type === 'connected' ? 'green' : 'red',
+      }}
+    >
+      {status().type === 'connected' ? status().payload : 'MIDI Keyboard unavailable'}
+    </div>
+  );
+};
+
 const App: Component = () => {
   const [selectedScale, setSelectedScale] = createSignal<Scale>();
 
+  const midiKeyboardEvent$ = observeMidiKeyboardEvent().pipe(share());
+
+  const keyboardStatus$ = midiKeyboardEvent$.pipe(filter(isKeyboardConnectionEvent));
+
+  const keyboardStatus = observableToAccessor(keyboardStatus$, {
+    type: 'disconnected' as const,
+    payload: '',
+  });
+
+  createEffect(() => {
+    console.log('here => ', keyboardStatus());
+  });
+
   const scannedNotes$ = observeScannedNotes({
     maximumNotes$: of(7),
-    playedNote$: observePlayedNotes().pipe(
+    playedNote$: midiKeyboardEvent$.pipe(
       filter(isNoteEvent),
       map(({ payload }) => payload),
     ),
@@ -84,6 +120,7 @@ const App: Component = () => {
   return (
     <>
       <AppTitle>Little Composer Helper</AppTitle>
+      <MidiKeyboardStatus deviceStatus={keyboardStatus} />
       <ChromaticDisplay notes={noteDisplay} />
       <ScaleSelector scannedNotes={scannedNotes} onSelectedScale={setSelectedScale} />
       <ScaleDisplay scale={selectedScale()} />
