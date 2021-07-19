@@ -1,5 +1,5 @@
-import { always } from 'ramda';
-import { For, Accessor, Component, createMemo, createSignal, JSX } from 'solid-js';
+import { For, Accessor, Component, createMemo, createSignal, JSX, createEffect } from 'solid-js';
+import { Note } from '../../domain/notes';
 
 import { ALL_AVAILABLE_SCALES, Scale } from '../../domain/scales';
 
@@ -57,8 +57,26 @@ const ScaleLine: Component<ScaleLineProps> = props => {
   );
 };
 
-export const ScaleSelector: Component = () => {
+type ScaleSelectorProps = {
+  scannedNotes: Accessor<Note[]>;
+  onSelectedScale?: (scale: Scale | undefined) => void;
+};
+
+const isInScale =
+  (scale: Scale) =>
+  (note: Note): boolean =>
+    Boolean(scale.notes.find(n => n === note));
+
+const isNotInScale = (scale: Scale) => (note: Note) => !isInScale(scale)(note);
+
+export const ScaleSelector: Component<ScaleSelectorProps> = props => {
   const [selectedScale, setSelectedScale] = createSignal<Scale>();
+
+  createEffect(() => {
+    if (props.onSelectedScale) {
+      props.onSelectedScale(selectedScale());
+    }
+  });
 
   return (
     <div
@@ -77,10 +95,15 @@ export const ScaleSelector: Component = () => {
         {scale => {
           const selected = () => selectedScale()?.name === scale.name;
 
+          const disabled = createMemo(() => {
+            const forbiddenNote = props.scannedNotes().find(isNotInScale(scale));
+            return Boolean(forbiddenNote);
+          });
+
           return (
             <ScaleLine
               onClick={() => setSelectedScale(scale)}
-              disabled={always(false)}
+              disabled={disabled}
               selected={selected}
             >
               {scale.name}

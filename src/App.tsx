@@ -1,13 +1,16 @@
-import { indexBy, mapObjIndexed } from 'ramda';
-import { For, JSX, Component, createMemo } from 'solid-js';
+import { For, JSX, Component, createSignal } from 'solid-js';
 
-import { ChromaticCounter, createNoteCounter } from './containers/ChromaticCounter';
 import { ScaleSelector } from './containers/ScaleSelector';
 import { CHROMATIC_SCALE_BASE_C, Note } from './domain/notes';
-import { MAJOR_SCALES, Scale } from './domain/scales';
+import { Scale } from './domain/scales';
 
 import './domain/midi-keyboard';
 import './domain/note-scanner';
+import { ChromaticDisplay, createNoteDisplay } from './containers/ChromaticDisplay';
+import { isNoteEvent, observePlayedNotes } from './domain/midi-keyboard';
+import { observeScannedNotes } from './domain/note-scanner';
+import { filter, map, of } from 'rxjs';
+import { observableToAccessor } from './utils/solid-rxjs-tools';
 
 type AppTitleProps = { children: string };
 
@@ -23,8 +26,6 @@ const AppTitle: Component<AppTitleProps> = props => {
   );
 };
 
-type NoteCountersMap = Record<Note, number>;
-
 const ScaleDisplayNote: Component<{ note: Note }> = ({ note }) => {
   const sharp = note.length > 1;
 
@@ -39,46 +40,51 @@ const ScaleDisplayNote: Component<{ note: Note }> = ({ note }) => {
   return <div style={lineStyle}>{note}</div>;
 };
 
-const ScaleDisplay: Component<{ scale: Scale }> = ({ scale }) => {
+const ScaleDisplay: Component<{ scale?: Scale }> = props => {
   return (
     <>
-      <div
-        style={{
-          position: 'absolute',
-          margin: '42px',
-          'background-color': 'gray',
-          'min-width': '60px',
-          padding: '20px',
-          height: '200px',
-        }}
-      >
-        <For each={scale.notes}>
-          {note => {
-            return <ScaleDisplayNote note={note} />;
+      {props.scale && (
+        <div
+          style={{
+            position: 'absolute',
+            margin: '42px',
+            'background-color': 'gray',
+            'min-width': '60px',
+            padding: '20px',
+            height: '200px',
           }}
-        </For>
-      </div>
+        >
+          <For each={props.scale?.notes ?? []}>
+            {note => {
+              return <ScaleDisplayNote note={note} />;
+            }}
+          </For>
+        </div>
+      )}
     </>
   );
 };
 
 const App: Component = () => {
-  const noteCounters = CHROMATIC_SCALE_BASE_C.map(note => createNoteCounter(note));
-
-  const noteCountersMap = createMemo((): NoteCountersMap => {
-    const indexedNoteCounters = indexBy(v => v.note, noteCounters);
-    return mapObjIndexed(v => v.count(), indexedNoteCounters);
+  const scannedNotes$ = observeScannedNotes({
+    maximumNotes$: of(7),
+    playedNote$: observePlayedNotes().pipe(
+      filter(isNoteEvent),
+      map(({ payload }) => payload),
+    ),
   });
 
-  // TODO: pass to ScaleSelector
-  void noteCountersMap;
+  const scannedNotes = observableToAccessor(scannedNotes$, []);
+  const noteDisplay = CHROMATIC_SCALE_BASE_C.map(note => createNoteDisplay(note, scannedNotes));
+
+  const [selectedScale, setSelectedScale] = createSignal<Scale>();
 
   return (
     <>
       <AppTitle>Little Composer Helper</AppTitle>
-      <ChromaticCounter noteCounters={noteCounters} />
-      <ScaleSelector />
-      <ScaleDisplay scale={MAJOR_SCALES.A} />
+      <ChromaticDisplay notes={noteDisplay} />
+      <ScaleSelector scannedNotes={scannedNotes} onSelectedScale={setSelectedScale} />
+      <ScaleDisplay scale={selectedScale()} />
     </>
   );
 };

@@ -46,10 +46,3 @@ export const observeScannedNotes = (config: ScanNotesConfig): Observable<Note[]>
 
   return scannedNotes$.pipe(distinctUntilChanged((a, b) => equals(a, b)));
 };
-
-// const sub = observeScannedNotes({
-//   playedNote$: observePlayedNotes().pipe(
-//     filter(isNoteEvent),
-//     map(({ payload }) => payload),
-//   ),
-// }).subscribe(console.log);
