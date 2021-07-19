@@ -1,31 +1,37 @@
 import { Accessor, Component, createMemo, For } from 'solid-js';
 import { Note } from '../../domain/notes';
+import { Scale } from '../../domain/scales';
 
 type NoteDisplayProps = {
   note: Note;
   sharp: boolean;
   active: Accessor<boolean>;
+  selected: Accessor<boolean>;
 };
 
-export const createNoteDisplay = (note: Note, scannedNotes: Accessor<Note[]>): NoteDisplayProps => {
+export const createNoteDisplay = (
+  note: Note,
+  scannedNotes: Accessor<Note[]>,
+  selectedScale: Accessor<Scale | undefined>,
+): NoteDisplayProps => {
   const active = createMemo(() => {
     return Boolean(scannedNotes().find(scanned => scanned === note));
+  });
+
+  const selected = createMemo(() => {
+    const selectedNotes = selectedScale()?.notes ?? [];
+    return Boolean(selectedNotes.find(selected => selected === note));
   });
 
   return {
     note,
     sharp: note.length > 1,
     active,
+    selected,
   };
 };
 
 const NoteDisplay: Component<NoteDisplayProps> = props => {
-  // const buttonStyle = {
-  //   padding: '2px',
-  //   margin: '2px',
-  //   // width: '20px',
-  // };
-
   return (
     <div>
       <div
@@ -44,6 +50,12 @@ const NoteDisplay: Component<NoteDisplayProps> = props => {
       </div>
       <span
         style={{
+          'padding-left': '10px',
+          'background-color': props.selected() ? 'green' : 'white',
+        }}
+      />
+      <span
+        style={{
           'background-color': 'gray',
           color: 'white',
           'padding-top': '8px',
@@ -51,15 +63,6 @@ const NoteDisplay: Component<NoteDisplayProps> = props => {
           'padding-right': '10px',
         }}
       >
-        {/* <button onClick={props.plus} style={buttonStyle}>
-          +
-        </button>
-        <button onClick={props.minus} style={buttonStyle}>
-          -
-        </button>
-        <button onClick={props.reset} style={buttonStyle}>
-          Reset
-        </button> */}
         <span
           style={{
             'padding-left': '10px',
@@ -71,11 +74,11 @@ const NoteDisplay: Component<NoteDisplayProps> = props => {
   );
 };
 
-type CromaticDisplayProps = {
+type ChromaticDisplayProps = {
   notes: NoteDisplayProps[];
 };
 
-const ChromaticLayout: Component<CromaticDisplayProps> = props => {
+const ChromaticLayout: Component<ChromaticDisplayProps> = props => {
   return (
     <div
       style={{
@@ -92,15 +95,7 @@ const ChromaticLayout: Component<CromaticDisplayProps> = props => {
   );
 };
 
-export const ChromaticDisplay: Component<CromaticDisplayProps> = props => {
-  // const onResetAll = () => {
-  //   batch(() => {
-  //     props.noteCounters.forEach(noteCounter => {
-  //       noteCounter.reset();
-  //     });
-  //   });
-  // };
-
+export const ChromaticDisplay: Component<ChromaticDisplayProps> = props => {
   return (
     <div
       style={{
@@ -112,7 +107,6 @@ export const ChromaticDisplay: Component<CromaticDisplayProps> = props => {
         height: '425px',
       }}
     >
-      {/* <button onClick={onResetAll}>RESET ALL</button> */}
       <ChromaticLayout notes={props.notes} />
     </div>
   );

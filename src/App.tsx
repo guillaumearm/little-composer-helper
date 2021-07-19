@@ -66,6 +66,8 @@ const ScaleDisplay: Component<{ scale?: Scale }> = props => {
 };
 
 const App: Component = () => {
+  const [selectedScale, setSelectedScale] = createSignal<Scale>();
+
   const scannedNotes$ = observeScannedNotes({
     maximumNotes$: of(7),
     playedNote$: observePlayedNotes().pipe(
@@ -75,9 +77,9 @@ const App: Component = () => {
   });
 
   const scannedNotes = observableToAccessor(scannedNotes$, []);
-  const noteDisplay = CHROMATIC_SCALE_BASE_C.map(note => createNoteDisplay(note, scannedNotes));
-
-  const [selectedScale, setSelectedScale] = createSignal<Scale>();
+  const noteDisplay = CHROMATIC_SCALE_BASE_C.map(note =>
+    createNoteDisplay(note, scannedNotes, selectedScale),
+  );
 
   return (
     <>
