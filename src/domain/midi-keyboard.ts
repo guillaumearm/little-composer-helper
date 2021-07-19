@@ -118,6 +118,10 @@ type KeyboardNoteEvent = {
 
 type KeyboardEvent = KeyboardConnectionEvent | KeyboardNoteEvent;
 
+export const isNoteEvent = (event: KeyboardEvent): event is KeyboardNoteEvent => {
+  return event.type === 'note';
+};
+
 export const observePlayedNotes = (): Observable<KeyboardEvent> => {
   const midiNotes$ = observeMidiKeyboardInput().pipe(
     startWith(undefined),

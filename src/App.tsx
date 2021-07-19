@@ -7,6 +7,7 @@ import { CHROMATIC_SCALE_BASE_C, Note } from './domain/notes';
 import { MAJOR_SCALES, Scale } from './domain/scales';
 
 import './domain/midi-keyboard';
+import './domain/note-scanner';
 
 type AppTitleProps = { children: string };
 
