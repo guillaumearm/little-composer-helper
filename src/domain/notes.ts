@@ -24,6 +24,13 @@ export const CHROMATIC_SCALE: Note[] = [
 
 export const INDEXED_CHROMATIC_SCALE = indexBy(x => x, CHROMATIC_SCALE);
 
+/**
+ * Guard to know if a given string is a valid note
+ */
+export const isValidNote = (note: string): note is Note => {
+  return Boolean(CHROMATIC_SCALE.find(n => n === note));
+};
+
 const compareNotes = (noteA: Note, noteB: Note): number => {
   if (noteA === noteB) return 0;
   return CHROMATIC_SCALE.indexOf(noteA) < CHROMATIC_SCALE.indexOf(noteB) ? -1 : 1;
