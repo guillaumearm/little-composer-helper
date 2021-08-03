@@ -20,7 +20,6 @@ import {
   startWith,
   pairwise,
   scan,
-  debounceTime,
 } from 'rxjs';
 
 import { INDEXED_CHROMATIC_SCALE, isValidNote, Note } from './notes';
@@ -209,6 +208,5 @@ export const observePressedNotes = (
       }
       return pressedNotes;
     }, DEFAULT_PRESSED_NOTES_MAP),
-    debounceTime(3),
   );
 };
