@@ -41,7 +41,7 @@ const App: Component = () => {
 
   const scannedNotes$ = observeScannedNotes({
     maximumNotes$: of(7),
-    playedNote$: noteEvent$.pipe(map(({ payload }) => payload)),
+    playedNote$: noteEvent$.pipe(map(({ payload }) => payload.note)),
   });
 
   const scannedNotes = observableToAccessor(scannedNotes$, []);

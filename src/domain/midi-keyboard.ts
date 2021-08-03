@@ -1,4 +1,5 @@
 import WebMidi, {
+  IEventNote,
   Input,
   InputEventNoteoff,
   InputEventNoteon,
@@ -24,6 +25,31 @@ import {
 
 import { INDEXED_CHROMATIC_SCALE, isValidNote, Note } from './notes';
 import { mapObjIndexed } from 'ramda';
+
+export type MidiNote = {
+  /** The usual note name (C, C#, D, D#, etc.). */
+  note: Note;
+
+  /** The MIDI note number. */
+  number: number;
+
+  /** The octave (between -2 and 8). */
+  octave: number;
+};
+
+const toMidiNote = ({ name, number, octave }: IEventNote): MidiNote => {
+  const note = name;
+
+  if (!isValidNote(note)) {
+    throw new Error('toMidiNote: invalidNote provided');
+  }
+
+  return {
+    note,
+    number,
+    octave,
+  };
+};
 
 const enableWebMidi = (): Promise<true> =>
   new Promise((res, rej) => {
@@ -91,14 +117,10 @@ const observeMidiKeyboardInput = (): Observable<Input | undefined> => {
 };
 
 const observeMidiNotesOn = (input: Input) =>
-  new Observable<Note>(obs => {
+  new Observable<MidiNote>(obs => {
     function listener(noteEvent: InputEventNoteon) {
-      const note = noteEvent.note.name;
-      if (isValidNote(note)) {
-        obs.next(note);
-      } else {
-        obs.error(new Error('observeMidiNotesOn: Invalid not provided!'));
-      }
+      const note = noteEvent.note;
+      obs.next(toMidiNote(note));
     }
 
     input.addListener('noteon', 'all', listener);
@@ -110,21 +132,17 @@ const observeMidiNotesOn = (input: Input) =>
   });
 
 const observeMidiNotesOff = (input: Input) =>
-  new Observable<Note>(obs => {
+  new Observable<MidiNote>(obs => {
     function listener(noteEvent: InputEventNoteoff) {
-      const note = noteEvent.note.name;
-      if (isValidNote(note)) {
-        obs.next(note);
-      } else {
-        obs.error(new Error('observeMidiNotesOn: Invalid not provided!'));
-      }
+      const note = noteEvent.note;
+      obs.next(toMidiNote(note));
     }
 
     input.addListener('noteoff', 'all', listener);
 
     return () => {
       input.removeListener('noteoff', 'all', listener);
-      obs.complete();
+      obs.complete(); // TODO: check if useful
     };
   });
 
@@ -135,13 +153,13 @@ export type KeyboardConnectionEvent = {
 
 export type KeyboardNoteEvent = {
   type: 'note';
-  payload: Note;
+  payload: MidiNote;
 };
 
 // TODO: implement full octave range to know what notes is pressed/released
 export type KeyboardNoteReleaseEvent = {
   type: 'note_release';
-  payload: Note;
+  payload: MidiNote;
 };
 
 export type KeyboardEvent = KeyboardConnectionEvent | KeyboardNoteEvent | KeyboardNoteReleaseEvent;
@@ -188,10 +206,10 @@ export const observeMidiKeyboardEvent = (): Observable<KeyboardEvent> => {
   return midiNotes$;
 };
 
-export type PressedNotesMap = Record<Note, boolean>;
+export type PressedNotesMap = Record<Note, number>;
 
 export const DEFAULT_PRESSED_NOTES_MAP: PressedNotesMap = mapObjIndexed(
-  () => false,
+  () => 0,
   INDEXED_CHROMATIC_SCALE,
 );
 
@@ -202,9 +220,9 @@ export const observePressedNotes = (
   return merge(noteOn$, noteRelease$).pipe(
     scan((pressedNotes, event) => {
       if (event.type === 'note') {
-        return { ...pressedNotes, [event.payload]: true };
+        return { ...pressedNotes, [event.payload.note]: true };
       } else if (event.type === 'note_release') {
-        return { ...pressedNotes, [event.payload]: false };
+        return { ...pressedNotes, [event.payload.note]: false };
       }
       return pressedNotes;
     }, DEFAULT_PRESSED_NOTES_MAP),
