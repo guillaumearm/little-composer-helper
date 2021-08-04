@@ -212,10 +212,10 @@ export const observeMidiKeyboardEvent = (): Observable<KeyboardEvent> => {
   return midiNotes$;
 };
 
-export type PressedNotesMap = Record<Note, number>;
+export type PressedNotesMap = Record<Note, boolean>;
 
 export const DEFAULT_PRESSED_NOTES_MAP: PressedNotesMap = mapObjIndexed(
-  () => 0,
+  () => false,
   INDEXED_CHROMATIC_SCALE,
 );
 
