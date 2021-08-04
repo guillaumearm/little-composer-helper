@@ -1,7 +1,7 @@
 import { Component, createSignal } from 'solid-js';
 
 import { ScaleSelector } from './components/ScaleSelector';
-import { CHROMATIC_SCALE_BASE_C } from './domain/notes';
+import { CHROMATIC_SCALE } from './domain/notes';
 import { Scale } from './domain/scales';
 
 import './domain/midi-keyboard';
@@ -46,7 +46,7 @@ const App: Component = () => {
 
   const scannedNotes = observableToAccessor(scannedNotes$, []);
 
-  const noteDisplay = CHROMATIC_SCALE_BASE_C.map(note =>
+  const noteDisplay = CHROMATIC_SCALE.map(note =>
     createNoteDisplay(note, scannedNotes, selectedScale, pressedNotes),
   );
 

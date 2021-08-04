@@ -23,7 +23,7 @@ import {
   scan,
 } from 'rxjs';
 
-import { CHROMATIC_SCALE_BASE_C, INDEXED_CHROMATIC_SCALE, isValidNote, Note } from './notes';
+import { CHROMATIC_SCALE, INDEXED_CHROMATIC_SCALE, isValidNote, Note } from './notes';
 import { times, mapObjIndexed, indexBy } from 'ramda';
 
 export type MidiNote = {
@@ -236,7 +236,7 @@ export const observePressedNotes = (
 };
 
 const MIDI_NOTES_NUMBER_MAP: Record<string, Note> = mapObjIndexed(
-  (x: number) => CHROMATIC_SCALE_BASE_C[x % CHROMATIC_SCALE_BASE_C.length],
+  (x: number) => CHROMATIC_SCALE[x % CHROMATIC_SCALE.length],
   indexBy(
     (x: number) => String(x),
     times(x => x, 127),

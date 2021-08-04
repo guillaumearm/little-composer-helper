@@ -7,7 +7,7 @@ import { dropRepeats, indexBy, sort } from 'ramda';
  */
 export type Note = 'A' | 'A#' | 'B' | 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#';
 
-export const CHROMATIC_SCALE: Note[] = [
+const CHROMATIC_SCALE_BASE_A: Note[] = [
   'A',
   'A#',
   'B',
@@ -22,18 +22,18 @@ export const CHROMATIC_SCALE: Note[] = [
   'G#',
 ];
 
-export const INDEXED_CHROMATIC_SCALE = indexBy(x => x, CHROMATIC_SCALE);
+export const INDEXED_CHROMATIC_SCALE = indexBy(x => x, CHROMATIC_SCALE_BASE_A);
 
 /**
  * Guard to know if a given string is a valid note
  */
 export const isValidNote = (note: string): note is Note => {
-  return Boolean(CHROMATIC_SCALE.find(n => n === note));
+  return Boolean(CHROMATIC_SCALE_BASE_A.find(n => n === note));
 };
 
 const compareNotes = (noteA: Note, noteB: Note): number => {
   if (noteA === noteB) return 0;
-  return CHROMATIC_SCALE.indexOf(noteA) < CHROMATIC_SCALE.indexOf(noteB) ? -1 : 1;
+  return CHROMATIC_SCALE_BASE_A.indexOf(noteA) < CHROMATIC_SCALE_BASE_A.indexOf(noteB) ? -1 : 1;
 };
 
 /**
@@ -42,7 +42,7 @@ const compareNotes = (noteA: Note, noteB: Note): number => {
 const sortNotes = (notes: Note[]): Note[] => dropRepeats(sort((a, b) => compareNotes(a, b), notes));
 
 const getNoteIndex = (note: Note): number => {
-  return CHROMATIC_SCALE.indexOf(note);
+  return CHROMATIC_SCALE_BASE_A.indexOf(note);
 };
 
 /**
@@ -58,9 +58,9 @@ const getNoteIndex = (note: Note): number => {
  */
 export const transposeNote = (note: Note, interval: number): Note => {
   const index = getNoteIndex(note);
-  const newIndex = (index + interval) % CHROMATIC_SCALE.length;
+  const newIndex = (index + interval) % CHROMATIC_SCALE_BASE_A.length;
 
-  return CHROMATIC_SCALE[newIndex < 0 ? CHROMATIC_SCALE.length + newIndex : newIndex];
+  return CHROMATIC_SCALE_BASE_A[newIndex < 0 ? CHROMATIC_SCALE_BASE_A.length + newIndex : newIndex];
 };
 
 /**
@@ -107,4 +107,7 @@ export const orderNotes = (notes: Note[]): Note[] => {
  *
  * C - C# - D - D# - E - F - F# - G - G# - A - A# - B
  */
-export const CHROMATIC_SCALE_BASE_C = changeBase(CHROMATIC_SCALE, 'C');
+const CHROMATIC_SCALE_BASE_C = changeBase(CHROMATIC_SCALE_BASE_A, 'C');
+
+// chromatic scale base C is used by default across the app
+export const CHROMATIC_SCALE = CHROMATIC_SCALE_BASE_C;
