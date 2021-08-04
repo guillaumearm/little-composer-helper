@@ -7,7 +7,7 @@ import { dropRepeats, indexBy, sort } from 'ramda';
  */
 export type Note = 'A' | 'A#' | 'B' | 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#';
 
-const CHROMATIC_SCALE_BASE_A: Note[] = [
+export const CHROMATIC_SCALE_BASE_A: Note[] = [
   'A',
   'A#',
   'B',

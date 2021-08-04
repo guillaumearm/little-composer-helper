@@ -19,8 +19,10 @@ import {
   observePressedNotes,
 } from './domain/midi-keyboard';
 import { observeScannedNotes } from './domain/note-scanner';
-import { filter, map, of, share } from 'rxjs';
+import { distinctUntilChanged, filter, interval, map, NEVER, of, share } from 'rxjs';
 import { observableToAccessor } from './utils/solid-rxjs-tools';
+import { getTimeTrackedNotesMap } from './domain/notes-tracker';
+import { krumhansl } from './domain/krumhansl';
 
 const App: Component = () => {
   const [selectedScale, setSelectedScale] = createSignal<Scale>();
@@ -28,6 +30,24 @@ const App: Component = () => {
   const midiKeyboardEvent$ = observeMidiKeyboardEvent().pipe(share());
   const noteEvent$ = midiKeyboardEvent$.pipe(filter(isNoteEvent));
   const noteReleaseEvent$ = midiKeyboardEvent$.pipe(filter(isNoteReleaseEvent));
+
+  // ! temporary
+  const timeTrackedNotesMap$ = getTimeTrackedNotesMap(
+    noteEvent$,
+    noteReleaseEvent$,
+    interval(1000),
+    NEVER,
+  );
+
+  // ! temporary
+  timeTrackedNotesMap$
+    .pipe(map(krumhansl), distinctUntilChanged())
+    // .pipe(map(krumhansl), map(getKeyProfileDisplayName), distinctUntilChanged())
+    .subscribe({
+      error: console.error,
+      complete: () => console.warn('=> completed'),
+      next: console.log,
+    });
 
   const pressedNotes$ = observePressedNotes(noteEvent$, noteReleaseEvent$);
   const pressedNotes = observableToAccessor(pressedNotes$, DEFAULT_PRESSED_NOTES_MAP);
