@@ -35,10 +35,15 @@ export type MidiNote = {
 
   /** The octave (between -2 and 8). */
   octave: number;
+
+  /** timestamp in ms to indicate when the event occurs */
+  time: number;
 };
 
-const toMidiNote = ({ name, number, octave }: IEventNote): MidiNote => {
+// ! side effect (usage of Date.now)
+const createMidiNote = ({ name, number, octave }: IEventNote): MidiNote => {
   const note = name;
+  const time = Date.now(); // ! side effect here
 
   if (!isValidNote(note)) {
     throw new Error('toMidiNote: invalidNote provided');
@@ -48,6 +53,7 @@ const toMidiNote = ({ name, number, octave }: IEventNote): MidiNote => {
     note,
     number,
     octave,
+    time,
   };
 };
 
@@ -120,7 +126,7 @@ const observeMidiNotesOn = (input: Input) =>
   new Observable<MidiNote>(obs => {
     function listener(noteEvent: InputEventNoteon) {
       const note = noteEvent.note;
-      obs.next(toMidiNote(note));
+      obs.next(createMidiNote(note));
     }
 
     input.addListener('noteon', 'all', listener);
@@ -135,7 +141,7 @@ const observeMidiNotesOff = (input: Input) =>
   new Observable<MidiNote>(obs => {
     function listener(noteEvent: InputEventNoteoff) {
       const note = noteEvent.note;
-      obs.next(toMidiNote(note));
+      obs.next(createMidiNote(note));
     }
 
     input.addListener('noteoff', 'all', listener);
