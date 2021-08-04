@@ -23,8 +23,8 @@ import {
   scan,
 } from 'rxjs';
 
-import { INDEXED_CHROMATIC_SCALE, isValidNote, Note } from './notes';
-import { mapObjIndexed } from 'ramda';
+import { CHROMATIC_SCALE_BASE_C, INDEXED_CHROMATIC_SCALE, isValidNote, Note } from './notes';
+import { times, mapObjIndexed, indexBy } from 'ramda';
 
 export type MidiNote = {
   /** The usual note name (C, C#, D, D#, etc.). */
@@ -233,4 +233,27 @@ export const observePressedNotes = (
       return pressedNotes;
     }, DEFAULT_PRESSED_NOTES_MAP),
   );
+};
+
+const MIDI_NOTES_NUMBER_MAP: Record<string, Note> = mapObjIndexed(
+  (x: number) => CHROMATIC_SCALE_BASE_C[x % CHROMATIC_SCALE_BASE_C.length],
+  indexBy(
+    (x: number) => String(x),
+    times(x => x, 127),
+  ),
+);
+
+/**
+ * * Utils
+ */
+export const getNoteFromNumber = (noteNumber: number): Note => {
+  const result = MIDI_NOTES_NUMBER_MAP[String(noteNumber)];
+
+  if (!result) {
+    throw new Error(
+      `getNoteFromNumber: unable to transform note number '${noteNumber}' to a valid Note`,
+    );
+  }
+
+  return result;
 };
